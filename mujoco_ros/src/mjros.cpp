@@ -2183,7 +2183,7 @@ void init()
     vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
 
     // create window
-    window = glfwCreateWindow((2 * vmode.width) / 3, (2 * vmode.height) / 3,
+    window = glfwCreateWindow((1 * vmode.width) / 3, (1 * vmode.height) / 3,
                               "Simulate", NULL, NULL);
     if (!window)
     {
