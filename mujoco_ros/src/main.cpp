@@ -127,6 +127,7 @@ int main(int argc, char **argv)
     nh.param("use_shm", use_shm, false);
     sim_command_sub = nh.subscribe<std_msgs::String>("/mujoco_ros_interface/sim_command_con2sim", 100, sim_command_callback);
     sim_command_pub = nh.advertise<std_msgs::String>("/mujoco_ros_interface/sim_command_sim2con", 1);
+    force_apply_sub = nh.subscribe("/tocabi_avatar/applied_ext_force", 10, &force_apply_callback);
 
     if (!use_shm)
     {        
@@ -161,7 +162,6 @@ int main(int argc, char **argv)
         strcat(sensor_state_name, "/sensor_states");
 
         joint_set = nh.subscribe<mujoco_ros_msgs::JointSet>(joint_set_name, 1, jointset_callback, ros::TransportHints().tcpNoDelay(true));
-
         if (pub_total_mode)
             sim_status_pub = nh.advertise<mujoco_ros_msgs::SimStatus>(sim_status_name, 1);
         else
@@ -230,7 +230,7 @@ int main(int argc, char **argv)
 
     // stop simulation thread
     settings.exitrequest = 1;
-    simthread.join();
+    // simthread.join();
 
     // delete everything we allocated
     uiClearCallback(window);

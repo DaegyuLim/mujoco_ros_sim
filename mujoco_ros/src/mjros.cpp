@@ -127,6 +127,22 @@ void sim_command_callback(const std_msgs::StringConstPtr &msg)
         std::cout << "SIM slowmotion by msg" << std::endl;
     }
 }
+
+void force_apply_callback(const std_msgs::Float32MultiArray &msg)
+{
+    
+    applied_ext_force_[0] = msg.data[0];
+    applied_ext_force_[1] = msg.data[1];
+    applied_ext_force_[2] = msg.data[2];
+    applied_ext_force_[3] = msg.data[3];
+    applied_ext_force_[4] = msg.data[4];
+    applied_ext_force_[5] = msg.data[5];
+
+    force_appiedd_link_idx_ = msg.data[6];
+
+    ext_force_applied_ = true;
+}
+
 void rosPollEvents()
 {
     if (reset_request)
@@ -234,6 +250,7 @@ void state_publisher_init()
 
     sim_status_msg_.sensor = sensor_state_msg_.sensor;
 
+    applied_ext_force_.resize(6);
     // std::cout << "force range " << std::endl;
     // for (int i = 0; i < m->nu; i++)
     // {
@@ -327,7 +344,7 @@ void state_publisher()
 
         std::copy(d->qpos + 7, d->qpos + 40, mj_shm_->pos);
         std::copy(d->qvel + 6, d->qvel + 39, mj_shm_->vel);
-        std::copy(d->qacc + 6, d->qacc + 39, mj_shm_->torqueActual);
+        // std::copy(d->qacc + 6, d->qacc + 39, mj_shm_->torqueActual);
 
         //memcpy(&mj_shm_->pos, &d->qpos[7], m->na * sizeof(float));
         //memcpy(&mj_shm_->vel, &d->qvel[6], m->na * sizeof(float));
@@ -345,15 +362,20 @@ void state_publisher()
         mj_shm_->pos_virtual[5] = d->qpos[6];
         mj_shm_->pos_virtual[6] = d->qpos[3];
 
+        // for (int i = 0; i <12; i++)
+        // {
+        //     mj_shm_->ftSensor[i] = 0;
+        // }
+
         for (int i = 0; i < m->nsensor; i++)
         {
 
             std::string sensor_name = sensor_state_msg_.sensor[i].name;
             if (sensor_name == "Acc_Pelvis_IMU")
             {
-                mj_shm_->imu_acc[0] = d->sensordata[m->sensor_adr[8] + 0];
-                mj_shm_->imu_acc[0] = d->sensordata[m->sensor_adr[8] + 1];
-                mj_shm_->imu_acc[0] = d->sensordata[m->sensor_adr[8] + 2];
+                mj_shm_->imu_acc[0] = d->sensordata[m->sensor_adr[i] + 0];
+                mj_shm_->imu_acc[1] = d->sensordata[m->sensor_adr[i] + 1];
+                mj_shm_->imu_acc[2] = d->sensordata[m->sensor_adr[i] + 2];
             }
             else if (sensor_name == "LF_Force_sensor")
             {
@@ -365,6 +387,37 @@ void state_publisher()
                 for (int j = 0; j < 3; j++)
                     mj_shm_->ftSensor[j + 3] = d->sensordata[m->sensor_adr[i] + j];
             }
+            // else if (sensor_name == "LF_Force_sensor2")
+            // {
+            //     for (int j = 0; j < 3; j++)
+            //         mj_shm_->ftSensor[j] += d->sensordata[m->sensor_adr[i] + j];
+            // }
+            // else if (sensor_name == "LF_Torque_sensor2")
+            // {
+            //     for (int j = 0; j < 3; j++)
+            //         mj_shm_->ftSensor[j + 3] += d->sensordata[m->sensor_adr[i] + j];
+            // }
+            // else if (sensor_name == "LF_Force_sensor3")
+            // {
+            //     for (int j = 0; j < 3; j++)
+            //         mj_shm_->ftSensor[j] += d->sensordata[m->sensor_adr[i] + j];
+            // }
+            // else if (sensor_name == "LF_Torque_sensor3")
+            // {
+            //     for (int j = 0; j < 3; j++)
+            //         mj_shm_->ftSensor[j + 3] += d->sensordata[m->sensor_adr[i] + j];
+            // }
+            // else if (sensor_name == "LF_Force_sensor4")
+            // {
+            //     for (int j = 0; j < 3; j++)
+            //         mj_shm_->ftSensor[j] += d->sensordata[m->sensor_adr[i] + j];
+            // }
+            // else if (sensor_name == "LF_Torque_sensor4")
+            // {
+            //     for (int j = 0; j < 3; j++)
+            //         mj_shm_->ftSensor[j + 3] += d->sensordata[m->sensor_adr[i] + j];
+            // }
+
             else if (sensor_name == "RF_Force_sensor")
             {
                 for (int j = 0; j < 3; j++)
@@ -374,6 +427,105 @@ void state_publisher()
             {
                 for (int j = 0; j < 3; j++)
                     mj_shm_->ftSensor[j + 9] = d->sensordata[m->sensor_adr[i] + j];
+            }
+            // else if (sensor_name == "RF_Force_sensor2")
+            // {
+            //     for (int j = 0; j < 3; j++)
+            //         mj_shm_->ftSensor[j + 6] += d->sensordata[m->sensor_adr[i] + j];
+            // }
+            // else if (sensor_name == "RF_Torque_sensor2")
+            // {
+            //     for (int j = 0; j < 3; j++)
+            //         mj_shm_->ftSensor[j + 9] += d->sensordata[m->sensor_adr[i] + j];
+            // }
+            // else if (sensor_name == "RF_Force_sensor3")
+            // {
+            //     for (int j = 0; j < 3; j++)
+            //         mj_shm_->ftSensor[j + 6] += d->sensordata[m->sensor_adr[i] + j];
+            // }
+            // else if (sensor_name == "RF_Torque_sensor3")
+            // {
+            //     for (int j = 0; j < 3; j++)
+            //         mj_shm_->ftSensor[j + 9] += d->sensordata[m->sensor_adr[i] + j];
+            // }
+            // else if (sensor_name == "RF_Force_sensor4")
+            // {
+            //     for (int j = 0; j < 3; j++)
+            //         mj_shm_->ftSensor[j + 6] += d->sensordata[m->sensor_adr[i] + j];
+            // }
+            // else if (sensor_name == "RF_Torque_sensor4")
+            // {
+            //     for (int j = 0; j < 3; j++)
+            //         mj_shm_->ftSensor[j + 9] += d->sensordata[m->sensor_adr[i] + j];
+            // }
+
+            else if (sensor_name == "LH_Force_sensor")
+            {
+                for (int j = 0; j < 3; j++)
+                    mj_shm_->ftSensor[j + 12] = d->sensordata[m->sensor_adr[i] + j];
+            }
+            else if (sensor_name == "LH_Torque_sensor")
+            {
+                for (int j = 0; j < 3; j++)
+                    mj_shm_->ftSensor[j + 15] = d->sensordata[m->sensor_adr[i] + j];
+            }
+            else if (sensor_name == "RH_Force_sensor")
+            {
+                for (int j = 0; j < 3; j++)
+                    mj_shm_->ftSensor[j + 18] = d->sensordata[m->sensor_adr[i] + j];
+            }
+            else if (sensor_name == "RH_Torque_sensor")
+            {
+                for (int j = 0; j < 3; j++)
+                    mj_shm_->ftSensor[j + 21] = d->sensordata[m->sensor_adr[i] + j];
+            }
+            else if (sensor_name == "LHY_Torque_sensor")
+            {
+                mj_shm_->torqueActual[0] = d->sensordata[m->sensor_adr[i] + 2]; //z axis
+            }
+            else if (sensor_name == "LHR_Torque_sensor")
+            {
+                mj_shm_->torqueActual[1] = d->sensordata[m->sensor_adr[i] + 0]; //x axis
+            }
+            else if (sensor_name == "LHP_Torque_sensor")
+            {
+                mj_shm_->torqueActual[2] = d->sensordata[m->sensor_adr[i] + 1]; //y axis
+            }
+            else if (sensor_name == "LKP_Torque_sensor")
+            {
+                mj_shm_->torqueActual[3] = d->sensordata[m->sensor_adr[i] + 1]; //y axis
+            }
+            else if (sensor_name == "LAP_Torque_sensor")
+            {
+                mj_shm_->torqueActual[4] = d->sensordata[m->sensor_adr[i] + 1]; //y axis
+            }
+            else if (sensor_name == "LAR_Torque_sensor")
+            {
+                mj_shm_->torqueActual[5] = d->sensordata[m->sensor_adr[i] + 0]; //x axis
+            }
+            else if (sensor_name == "RHY_Torque_sensor")
+            {
+                mj_shm_->torqueActual[6] = d->sensordata[m->sensor_adr[i] + 2]; //z axis
+            }
+            else if (sensor_name == "RHR_Torque_sensor")
+            {
+                mj_shm_->torqueActual[7] = d->sensordata[m->sensor_adr[i] + 0]; //x axis
+            }
+            else if (sensor_name == "RHP_Torque_sensor")
+            {
+                mj_shm_->torqueActual[8] = d->sensordata[m->sensor_adr[i] + 1]; //y axis
+            }
+            else if (sensor_name == "RKP_Torque_sensor")
+            {
+                mj_shm_->torqueActual[9] = d->sensordata[m->sensor_adr[i] + 1]; //y axis
+            }
+            else if (sensor_name == "RAP_Torque_sensor")
+            {
+                mj_shm_->torqueActual[10] = d->sensordata[m->sensor_adr[i] + 1]; //y axis
+            }
+            else if (sensor_name == "RAR_Torque_sensor")
+            {
+                mj_shm_->torqueActual[11] = d->sensordata[m->sensor_adr[i] + 0]; //x axis
             }
         }
 
@@ -469,6 +621,36 @@ void mycontroller(const mjModel *m, mjData *d)
         if (ros_sim_started)
         {
             state_publisher();
+            double ros_time_now, ros_time_avatar_mode11;
+            ros_time_now = ros::Time::now().toSec();
+            // ros::param::get("tocabi_avatar_thread11_start_time", ros_time_avatar_mode11);
+            //apply force (dg add)
+            int link_idx = 6*force_appiedd_link_idx_;
+            if( ext_force_applied_ )
+            {
+                // force on the pelvis in global frame
+                // d->qfrc_applied[0] = 100; // x-axis
+                // d->qfrc_applied[1] = 10; // y-axis
+
+                // d->qfrc_applied[2] = -50;
+                // d->xfrc_applied[0] = 50;
+                // d->xfrc_applied[1] = 20;
+
+                //L_Shoulder1_Link
+                // d->xfrc_applied[6*19+0] = 00;
+                // d->xfrc_applied[6*19+1] = 00;
+                // d->xfrc_applied[6*19+2] = -50;
+                // d->qfrc_applied[9] = 1;
+                // d->qfrc_applied[15] = 1;
+
+                d->xfrc_applied[link_idx+0] = applied_ext_force_[0];
+                d->xfrc_applied[link_idx+1] = applied_ext_force_[1];
+                d->xfrc_applied[link_idx+2] = applied_ext_force_[2];
+                d->xfrc_applied[link_idx+3] = applied_ext_force_[3];
+                d->xfrc_applied[link_idx+4] = applied_ext_force_[4];
+                d->xfrc_applied[link_idx+5] = applied_ext_force_[5];
+            }
+            
 
             if (use_shm)
             {

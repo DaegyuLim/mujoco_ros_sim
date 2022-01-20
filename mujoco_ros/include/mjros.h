@@ -22,6 +22,7 @@
 
 #include <std_msgs/String.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Float32MultiArray.h>
 #include <sensor_msgs/JointState.h>
 #include <tf/transform_datatypes.h>
 
@@ -291,6 +292,13 @@ ros::Subscriber sim_command_sub;
 ros::Publisher sim_command_pub;
 ros::Publisher sim_status_pub;
 
+// apply external force
+ros::Subscriber force_apply_sub;
+std_msgs::Float32MultiArray ext_force_msg_;
+bool ext_force_applied_ = false;
+std::vector<float> applied_ext_force_;
+unsigned int force_appiedd_link_idx_;
+
 //mujoco_ros_msgs::JointState joint_state_msg_;
 //mujoco_ros_msgs::JointSet joint_set_msg_;
 mujoco_ros_msgs::SensorState sensor_state_msg_;
@@ -358,6 +366,7 @@ void c_reset();
 
 void jointset_callback(const mujoco_ros_msgs::JointSetConstPtr &msg);
 void sim_command_callback(const std_msgs::StringConstPtr &msg);
+void force_apply_callback(const std_msgs::Float32MultiArray &msg);
 void state_publisher_init();
 void state_publisher();
 void mujoco_ros_connector_init();
