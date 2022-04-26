@@ -128,7 +128,6 @@ int main(int argc, char **argv)
     sim_command_sub = nh.subscribe<std_msgs::String>("/mujoco_ros_interface/sim_command_con2sim", 100, sim_command_callback);
     sim_command_pub = nh.advertise<std_msgs::String>("/mujoco_ros_interface/sim_command_sim2con", 1);
     force_apply_sub = nh.subscribe("/tocabi_avatar/applied_ext_force", 10, &force_apply_callback);
-
     if (!use_shm)
     {        
         nh.param("pub_mode", pub_total_mode, false);
@@ -182,10 +181,8 @@ int main(int argc, char **argv)
     sim_time_ros = ros::Duration(0);
     sim_time_run = ros::Time::now();
     sim_time_now_ros = ros::Duration(0);
-
     // initialize everything
     init();
-
     std::string model_file;
     // request loadmodel if file given (otherwise drag-and-drop)
     if (nh.getParam("model_file", model_file))
@@ -194,10 +191,9 @@ int main(int argc, char **argv)
         settings.loadrequest = 2;
         ROS_INFO("model is at %s", model_file.c_str());
     }
-
     // start simulation thread
     std::thread simthread(simulate);
-
+    
     // event loop
     while ((!glfwWindowShouldClose(window) && !settings.exitrequest) && ros::ok())
     {
@@ -211,13 +207,10 @@ int main(int argc, char **argv)
         }
         else if (settings.loadrequest > 1)
             settings.loadrequest = 1;
-
         // handle events (calls all callbacks)
         glfwPollEvents();
-
         // prepare to render
         prepare();
-
         // ros events
         rosPollEvents();
 
@@ -227,7 +220,6 @@ int main(int argc, char **argv)
         // render while simulation is running
         render(window);
     }
-
     // stop simulation thread
     settings.exitrequest = 1;
     // simthread.join();

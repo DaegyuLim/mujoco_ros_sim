@@ -342,10 +342,29 @@ void state_publisher()
 
         mj_shm_->statusWriting = true;
 
-        std::copy(d->qpos + 7, d->qpos + 40, mj_shm_->pos);
-        std::copy(d->qvel + 6, d->qvel + 39, mj_shm_->vel);
+        // std::copy(d->qpos + 7, d->qpos + 40, mj_shm_->pos);
+        // std::copy(d->qvel + 6, d->qvel + 39, mj_shm_->vel);
         // std::copy(d->qacc + 6, d->qacc + 39, mj_shm_->torqueActual);
 
+        //// for leg spring joint model
+
+        for (int i = 0; i<12; i++)
+        {
+            mj_shm_->pos[i] = d->qpos[7+2*i];
+        }
+        for (int i = 0; i<21; i++)
+        {
+            mj_shm_->pos[12+i] = d->qpos[31+i];
+        }
+
+        for (int i = 0; i<12; i++)
+        {
+            mj_shm_->vel[i] = d->qvel[6+2*i];
+        }
+        for (int i = 0; i<21; i++)
+        {
+            mj_shm_->vel[12+i] = d->qvel[30+i];
+        }
         //memcpy(&mj_shm_->pos, &d->qpos[7], m->na * sizeof(float));
         //memcpy(&mj_shm_->vel, &d->qvel[6], m->na * sizeof(float));
         //memcpy(&mj_shm_->torqueActual, &d->qacc[6], m->na * sizeof(float));
@@ -482,6 +501,7 @@ void state_publisher()
             else if (sensor_name == "LHY_Torque_sensor")
             {
                 mj_shm_->torqueActual[0] = d->sensordata[m->sensor_adr[i] + 2]; //z axis
+                // mju_copy(m->qpos_spring, d->qpos, m->nq);
             }
             else if (sensor_name == "LHR_Torque_sensor")
             {
@@ -621,10 +641,13 @@ void mycontroller(const mjModel *m, mjData *d)
         if (ros_sim_started)
         {
             state_publisher();
-            double ros_time_now, ros_time_avatar_mode11;
-            ros_time_now = ros::Time::now().toSec();
+            // double ros_time_now, ros_time_avatar_mode11;
+            // ros_time_now = ros::Time::now().toSec();
             // ros::param::get("tocabi_avatar_thread11_start_time", ros_time_avatar_mode11);
             //apply force (dg add)
+            // mjModel.qpos_spring
+            // mju_copy(m->qpos_spring, d->qpos, m->nq);
+            
             int link_idx = 6*force_appiedd_link_idx_;
             if( ext_force_applied_ )
             {
@@ -649,8 +672,17 @@ void mycontroller(const mjModel *m, mjData *d)
                 d->xfrc_applied[link_idx+3] = applied_ext_force_[3];
                 d->xfrc_applied[link_idx+4] = applied_ext_force_[4];
                 d->xfrc_applied[link_idx+5] = applied_ext_force_[5];
+                
+                // d->qfrc_applied[0] = applied_ext_force_[0];
+                // d->qfrc_applied[1] = applied_ext_force_[1];
+                // d->qfrc_applied[2] = applied_ext_force_[2];
+                // d->qfrc_applied[3] = applied_ext_force_[3];
+                // d->qfrc_applied[4] = applied_ext_force_[4];
+                // d->qfrc_applied[5] = applied_ext_force_[5];
             }
             
+            // d->qfrc_applied[2] = 924.213; // z-axis 
+
 
             if (use_shm)
             {
