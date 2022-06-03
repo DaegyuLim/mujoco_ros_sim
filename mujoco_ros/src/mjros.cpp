@@ -342,29 +342,30 @@ void state_publisher()
 
         mj_shm_->statusWriting = true;
 
-        // std::copy(d->qpos + 7, d->qpos + 40, mj_shm_->pos);
-        // std::copy(d->qvel + 6, d->qvel + 39, mj_shm_->vel);
-        // std::copy(d->qacc + 6, d->qacc + 39, mj_shm_->torqueActual);
+        std::copy(d->qpos + 7, d->qpos + 40, mj_shm_->pos);
+        std::copy(d->qvel + 6, d->qvel + 39, mj_shm_->vel);
+        std::copy(d->qacc + 6, d->qacc + 39, mj_shm_->torqueActual);
 
         //// for leg spring joint model
+        // for (int i = 0; i<12; i++)
+        // {
+        //     mj_shm_->pos[i] = d->qpos[7+2*i];
+        // }
+        // for (int i = 0; i<21; i++)
+        // {
+        //     mj_shm_->pos[12+i] = d->qpos[31+i];
+        // }
 
-        for (int i = 0; i<12; i++)
-        {
-            mj_shm_->pos[i] = d->qpos[7+2*i];
-        }
-        for (int i = 0; i<21; i++)
-        {
-            mj_shm_->pos[12+i] = d->qpos[31+i];
-        }
+        // for (int i = 0; i<12; i++)
+        // {
+        //     mj_shm_->vel[i] = d->qvel[6+2*i];
+        // }
+        // for (int i = 0; i<21; i++)
+        // {
+        //     mj_shm_->vel[12+i] = d->qvel[30+i];
+        // }
+        ////////////////////////////////////////////
 
-        for (int i = 0; i<12; i++)
-        {
-            mj_shm_->vel[i] = d->qvel[6+2*i];
-        }
-        for (int i = 0; i<21; i++)
-        {
-            mj_shm_->vel[12+i] = d->qvel[30+i];
-        }
         //memcpy(&mj_shm_->pos, &d->qpos[7], m->na * sizeof(float));
         //memcpy(&mj_shm_->vel, &d->qvel[6], m->na * sizeof(float));
         //memcpy(&mj_shm_->torqueActual, &d->qacc[6], m->na * sizeof(float));
